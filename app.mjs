@@ -1,13 +1,18 @@
 import express from "express";
 import cors from 'cors'
+import schema from './schema/index.mjs'
 const app = express();
 const port = 3000;
 
 app.use(express.json()); // Middleware to parse JSON data
 
-let users = [  // Define the users array
+let users = [];
+/// ya cheak kare ga ka kon sa reponse sab sa zayda use horaha ha
+app.use('/',(req,res,next)=>{
+    console.log("Request URL:", req.url, "method: ", req.method);
+    next()
+  })
 
-];
 app.use(cors())
 // GET: Fetch All Users
 app.get("/adduser", (req, res) => {
@@ -15,17 +20,22 @@ app.get("/adduser", (req, res) => {
 });
 
 // POST: Add a New User
-app.post('/adduser', (req, res) => {
-    console.log(req.body);  // Log received data
+app.post('/adduser', async (req, res) => {
+    console.log(req.body); 
+    try {
+        await schema.validateAsync(req.body); 
+        const newUser = {
+            id: users.length + 1, 
+            ...req.body
+        };
 
-    const newUser = {
-        id: users.length + 1,  // Corrected `users.length`
-        ...req.body  // Corrected `req.body`
-    };
-
-    users.push(newUser); // Add new user to the array
-    res.json({ message: "User added successfully!", users });
+        users.push(newUser); 
+        res.json({ message: "User added successfully!", users });
+    } catch (err) { 
+        res.status(400).send({ error: err.message || "Something went wrong", status: 400 });
+    }
 });
+
 
 
 
